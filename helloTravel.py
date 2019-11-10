@@ -24,6 +24,7 @@
 # Keyword Erkennung aller Slots bei jeder Frage möglich machen
 # Exit Keyword # if schleife nach jeder funktion in startChat?
 
+from FormatDates import Helper
 
 
 storage = {
@@ -68,7 +69,7 @@ def askForDestination():
 
 def askForDate():
     data = str(input("An welchem Tag möchten Sie fliegen? "))
-    output = extractInfo(data)
+    output = Helper.getDate(data)
     store(output)
     if output['dep-date'] == None:
         print("Tut mir leid, das habe ich nicht verstanden. Können Sie bitte noch einmal wiederholen?")
@@ -76,7 +77,7 @@ def askForDate():
 
 def askForTime():
     data = str(input("Möchten Sie zu einer bestimmten Uhrzeit abfliegen? "))
-    output = extractInfo(data)
+    output = Helper.getTime(data)
     store(output)
     if output['dep-time'] == None:
         print("Tut mir leid, das habe ich nicht verstanden. Können Sie bitte noch einmal wiederholen?")
@@ -167,5 +168,4 @@ def startChat():
     flightSuggestion()
 
     # return
-
 
