@@ -1,7 +1,14 @@
+"""
+TODO: add doc
+"""
+
 from owlready2 import *
 
 
 class OntologyManager:
+    """
+    TODO: add doc
+    """
 
     def __init__(self, path_to_ontology="./data/flight_information_ontology.owl"):
         self.path_to_ontology = path_to_ontology
@@ -10,6 +17,9 @@ class OntologyManager:
         self.ontology.base_iri = "flight_information_ontology.owl#"
 
     def load_ontology(self):
+        """
+        TODO: add doc
+        """
         try:
             onto = get_ontology("./data/flight_information_ontology.owl").load()
             return onto
@@ -18,27 +28,42 @@ class OntologyManager:
             raise e
 
     def get_valid_origin_airports(self):
+        """
+        TODO: add doc
+        """
         ontology_search_results = self.ontology.search(type=self.ontology.Flughafen, ist_gültiger_startflughafen_für_flugreise=True)
 
         return  OntologyManager._as_dict(ontology_search_results)
 
     def get_invalid_origin_airports(self):
+        """
+        TODO: add doc
+        """
         ontology_search_results = ontology_search_results = self.ontology.search(ist_gültiger_startflughafen_für_flugreise=False)
 
         return OntologyManager._as_dict(ontology_search_results)
 
     def get_valid_destination_airports(self):
+        """
+        TODO: add doc
+        """
         ontology_search_results = self.ontology.search(type= self.ontology.Flughafen, ist_gültiger_zielflughafen_für_flugreise=True)
 
         return OntologyManager._as_dict(ontology_search_results)
 
     def get_invalid_destination_airports(self):
+        """
+        TODO: add doc
+        """
         ontology_search_results = self.ontology.search(ist_gültiger_zielflughafen_für_flugreise=False)
 
         return OntologyManager._as_dict(ontology_search_results)
 
     @staticmethod
     def _as_dict(ontology_search_results):
+        """
+        TODO: add doc
+        """
         out = dict()
 
         names = list(map(lambda x: x.name,(ontology_search_results)))
