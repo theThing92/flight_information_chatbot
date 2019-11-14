@@ -1,3 +1,5 @@
+from owlready2 import *
+
 
 class OntologyManager:
 
@@ -6,7 +8,6 @@ class OntologyManager:
         self.ontology = self.load_ontology()
         # set to correct base iri to be able to correctly access ontology classes via ontology attribute
         self.ontology.base_iri = "flight_information_ontology.owl#"
-        self.dictionary = self.as_dict()
 
     def load_ontology(self):
         try:
@@ -16,34 +17,65 @@ class OntologyManager:
         except (Exception, IOError) as e:
             raise e
 
-    def as_dict(self, ontology):
-
-        out = dict()
-
-        list_flugreisen = ontology.search(type=onto.Flugreise)
-
-        for f in list_flugreisen:
-            name = f.name
-            props = f.get_properties()
-
-            for p in props:
-                name = p.name
-
-        pass
-
-
     def get_valid_origin_airports(self):
-        pass
+        ontology_search_results = self.ontology.search(type=self.ontology.Flughafen, ist_gültiger_startflughafen_für_flugreise=True)
+
+        return  OntologyManager._as_dict(ontology_search_results)
+
+    def get_invalid_origin_airports(self):
+        ontology_search_results = ontology_search_results = self.ontology.search(ist_gültiger_startflughafen_für_flugreise=False)
+
+        return OntologyManager._as_dict(ontology_search_results)
 
     def get_valid_destination_airports(self):
-        pass
+        ontology_search_results = self.ontology.search(type= self.ontology.Flughafen, ist_gültiger_zielflughafen_für_flugreise=True)
 
+        return OntologyManager._as_dict(ontology_search_results)
 
+    def get_invalid_destination_airports(self):
+        ontology_search_results = self.ontology.search(ist_gültiger_zielflughafen_für_flugreise=False)
+
+        return OntologyManager._as_dict(ontology_search_results)
+
+    @staticmethod
+    def _as_dict(ontology_search_results):
+        out = dict()
+
+        names = list(map(lambda x: x.name,(ontology_search_results)))
+        synonyms = list(map(lambda x: x.hat_synonyme,(ontology_search_results)))
+
+        for k, v in zip(names, synonyms):
+            out[k] = v
+
+        return out
 
 
 if __name__ == "__main__":
-    from owlready2 import *
+    from pprint import pprint
 
-    onto = get_ontology("./data/flight_information_ontology.owl").load()
-    # set to correct base iri to be able to correctly access ontology classes via ontology attribute
-    onto.base_iri = "flight_information_ontology.owl#"
+    onto_manager = OntologyManager()
+
+    print("##############################################################")
+    print("################# valid origin airports #################")
+    print("##############################################################")
+    pprint(onto_manager.get_valid_origin_airports())
+    print()
+
+    print("##############################################################")
+    print("################# invalid origin airports #################")
+    print("##############################################################")
+    pprint(onto_manager.get_invalid_origin_airports())
+    print()
+
+    print("##############################################################")
+    print("################# valid destination airports #################")
+    print("##############################################################")
+    pprint(onto_manager.get_valid_destination_airports())
+    print()
+
+    print("##############################################################")
+    print("################# invalid destination airports #################")
+    print("##############################################################")
+    pprint(onto_manager.get_invalid_destination_airports())
+    print()
+
