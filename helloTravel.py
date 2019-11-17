@@ -33,10 +33,8 @@ storage = {
     'dep-date': None,   #basic need-to-know
     'dep-time': None,   #basic need-to-know
     'budget': None,         # optional nice-to-know
-    'lay-over-time': None,  # optional nice-to-know
+    'sort-by-time': None,  # optional nice-to-know
     'max-stops': None,      # optional nice-to-know
-    'eco-friendly': None,   # optional nice-to-know
-    'importance': None      # optional nice-to-know
     # Default Settings?
 }
 # alternative speicherung der präferenzen als nested dictionary:
@@ -51,7 +49,7 @@ def greeting():
 def askForStart():
     data = str(input("Von wo aus möchten Sie abfliegen? "))
     output = extractInfo(data)
-    store(output)
+    store({'start':output})
     if output['start'] == None:
         print("Tut mir leid, das habe ich nicht verstanden. Können Sie bitte noch einmal wiederholen?")
         askForStart()
@@ -62,7 +60,7 @@ def askForStart():
 def askForDestination():
     data = str(input("Wo möchten Sie hinfliegen? "))
     output = extractInfo(data)
-    store(output)
+    store({'ziel':output})
     if output['ziel'] == None:
         print("Tut mir leid, das habe ich nicht verstanden. Können Sie bitte noch einmal wiederholen?")
         askForDestination()
@@ -70,39 +68,42 @@ def askForDestination():
 def askForDate():
     data = str(input("An welchem Tag möchten Sie fliegen? "))
     output = Helper.getDate(data)
-    store(output)
-    if output['dep-date'] == None:
+    store({'dep-date':output})
+    if output == None:
         print("Tut mir leid, das habe ich nicht verstanden. Können Sie bitte noch einmal wiederholen?")
         askForDate()
 
 def askForTime():
     data = str(input("Möchten Sie zu einer bestimmten Uhrzeit abfliegen? "))
     output = Helper.getTime(data)
-    store(output)
-    if output['dep-time'] == None:
+    store({'dep-time':output})
+    if output == None:
         print("Tut mir leid, das habe ich nicht verstanden. Können Sie bitte noch einmal wiederholen?")
         askForTime()
 
 def askForPreference():
-    print("Haben Sie noch weitere Präferenzen, z.B. ein Budget oder eine Höchstanzahl an Umstiegen? ")
+    print("Haben Sie noch weitere Präferenzen, z.B. ein Budget, eine Höchstanzahl an Umstiegen oder wollen Sie möglichst kurz fliegen?? ")
     data = str(input())
-    # validatePreference():
-    # 1. keywordsearch um spezifische präferenzen zu identifizieren, zB 'Budget'
-    # 2. erkennung des wertes der präferenzen, zB '300'
-
-    # data = 'Mein budget liegt bei 300 euro'
-    # gewünschter output = {'budget': 300}
-
-    # data = "Der Preis darf nicht über 100 Euro liegen und ich möchte nur 2 mal umsteigen"
-    # gewünschter output =  {'budget': 100, 'max stops': 2}
-
-    # Wenn nur Budget gesagt wird dann {'budget': min} 
-    # es wird dann bei der Flugssuche nach den niedrigsten Kosten sortiert
-
-    # data = "blablablaba"
-    # validatePreference = False, bzw output = {}, dann bleiben die präferenzen leer oder im default
-    output = extractInfo(data)
-    store(output)
+    pref = Helper.getPreference(data)
+    
+    if pref == "changes":
+        output = Helper.getChanges(data)
+        store({'max-stops': output})
+    elif pref == "budget":
+        output = Helper.getBudget(data)
+        store({'budget':output})
+    elif pref == "duration":
+        print ("Alles klar, es wird nach den kürzesten Flügen sortiert.")
+        store({'sort-by-time':True})
+    else:
+        print("Entschuldigung, ich habe Ihre Präferenz nicht verstanden. Könnten Sie das noch einmal anders formulieren?")
+        askForPreference()
+    
+    print ("Alles klar, haben Sie noch weitere Präferenzen?")
+    answer = str(input())
+    if answer.lower() in ["ja", "absolut", "klar"]:
+        askForPreference()
+    
     
 
 def extractInfo(data):
@@ -169,3 +170,7 @@ def startChat():
 
     # return
 
+greeting()
+askForDate()
+askForTime()
+askForPreference()

@@ -1,9 +1,9 @@
-#Diese Klasse kann in die Main importiert werden und soll aus Inputs zu
-#Datum - getDate
-#Zeit - getTime
-#Budget - getBudget
-#Umstiege - getChanges
-#jeweils die Daten für die Suchamschien lesbar aufbereiten.
+#Diese Klasse kann in die Main importiert werden und soll aus Inputs zu...
+    #Datum - getDate
+    #Zeit - getTime
+    #Budget - getBudget
+    #Umstiege - getChanges
+#...jeweils die Daten für die Suchamschien lesbar aufbereiten.
 #Für jeden Case gibt es dafür eine eigene Methode, an die der ganze Input-String übergeben werden kann
 import re
 
@@ -115,7 +115,7 @@ class Helper:
         if budget != -1:
             return budget
         else:
-            print ("Das habe ich nicht verstanden. Bitte nur runde Zahlen eingeben:")
+            print ("Bitte geben Sie ihr höchstes Budget als ganze Hal ein:")
             inp = input()
             return Helper.getBudget(inp)
 
@@ -144,9 +144,39 @@ class Helper:
         if changes != -1:
             return changes
         else:
-            print ("Das habe ich nicht verstanden. Bitte klarer ausdrücken")
+            print ("Wie viele Umstiege wollen sie höchstens?")
             inp = input()
             return Helper.getChanges(inp)
+        
+    def getPreference(inputString):
+        inputString = inputString.lower()
+        pref = ""
+
+        #changes
+        ch_keys = ["umstieg", "umsteig"]
+
+        for key in ch_keys:
+            if key in inputString:
+                pref = "changes"
+
+
+        #budget
+        bu_keys = ["euro", "geld", "preis", "günstig", "teuer", "budget"]
+
+        for key in bu_keys:
+            if key in inputString:
+                pref = "budget"
+
+            
+        #flight-duration
+        du_keys = ["dauer", "kurz", "kürz", "läng", "lang", "zeit"]
+
+        for key in du_keys:
+            if key in inputString:
+                pref = "duration"
+            
+        return pref
+
 
 
 
