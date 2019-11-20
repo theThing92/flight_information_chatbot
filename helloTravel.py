@@ -25,7 +25,9 @@
 # Exit Keyword # if schleife nach jeder funktion in startChat?
 
 from FormatDates import Helper
-
+from flightgenerator import FLightGenerator
+from flightDataBase import FLightDataBase
+import datetime
 
 storage = {
     'start': None,      #basic need-to-know
@@ -38,7 +40,7 @@ storage = {
     # Default Settings?
 }
 # alternative speicherung der präferenzen als nested dictionary:
-# preferences = {'lay-over-time': {'value': None, 'importance': 0}, 
+# preferences = {'lay-over-time': {'value': None, 'importance': 0},
 #               'budget': {value: None, 'importance': 0}
 #               ..... }
 
@@ -85,7 +87,7 @@ def askForPreference():
     print("Haben Sie noch weitere Präferenzen, z.B. ein Budget, eine Höchstanzahl an Umstiegen oder wollen Sie möglichst kurz fliegen?? ")
     data = str(input())
     pref = Helper.getPreference(data)
-    
+
     if pref == "changes":
         output = Helper.getChanges(data)
         store({'max-stops': output})
@@ -98,16 +100,16 @@ def askForPreference():
     else:
         print("Entschuldigung, ich habe Ihre Präferenz nicht verstanden. Könnten Sie das noch einmal anders formulieren?")
         askForPreference()
-    
+
     print ("Alles klar, haben Sie noch weitere Präferenzen?")
     answer = str(input())
     if answer.lower() in ["ja", "absolut", "klar"]:
         askForPreference()
-    
-    
+
+
 
 def extractInfo(data):
-    # Die usereingabe wird überprüft, keywörter extrahiert und eine dictionary zurückgegeben    
+    # Die usereingabe wird überprüft, keywörter extrahiert und eine dictionary zurückgegeben
     # -> die dictionary enthält key und value paare
     # ontologie und levenstein funktion werden benutzt
     return {}
@@ -120,9 +122,10 @@ def store(output):
         # werden 'storage', also basis infos, und präfernzen in 2 getrennten dicts gespeichert?
 
 def flightQuery():
-    flights = getFlights() # sucht nach Flügen
-    bestFlights = filterQuery(flights) # Flüge filtern
-    # bestFlights = Liste von festgesetzter Menge an Flügen ? 
+    flights = dataBase.GetFLights(start= storage["start"], goal =storage["ziel"], date = datetime.datetime(storage["dep-date"][2],storage["dep-date"][1],storage["dep-date"][0]),
+    time= datetime.time(storage["dep-time"][1],storage["dep-time"][0]), changes = storage["max-stops"], duration = storage["sort-by-time"], cost = storage["budget"])
+    preferences=[1,1,1,1,1,1,1]
+    bestFlights= dataBase.SortList(flights, preferences)
     return bestFlights
 
 def filterQuery():
@@ -151,7 +154,7 @@ def extractFlightSuggestionInfo(data):
 
 def bookFlight():
     print('Ihr Flug wurde gebucht!')
-    return 
+    return
 
 def startChat():
     # Exit?
@@ -170,6 +173,7 @@ def startChat():
 
     # return
 
+dataBase = FLightDataBase("flights.txt")
 greeting()
 askForDate()
 askForTime()
