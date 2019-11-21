@@ -48,21 +48,24 @@ def levenshtein(seq1, seq2):
     #Der Wert unten rechts ist die levenshteindistanz
     return (matrix[size_x - 1, size_y - 1])
 
-eingabe = "Hongong"
-# ontology
-ontology = ("Hongkong", "New York", "Berlin")
-distanz = {}
-# Wie hoch ist die akzeptiere Levenshtein-Distanz
-fehlergrenze = 3
-''' Worte deren Levenshteindistanz zur Eingabe unter der gegebenen 
-Fehlergrenze liegt werden in das distanz-Lexikon aufgenommen'''
-for element in ontology:
-    if levenshtein(eingabe,element)<=fehlergrenze:
-        distanz[element] = levenshtein(eingabe,element)
-print(distanz)    
 
-# Vertauschung nachträglich eingebaut
-# Groß-/ Kleinschreibung wird als voller Fehler gewertet
-# Tastendistanz läuft nicht mit ein (Levenstheindistanz anpassen)
-# höhere Fehlergrenze bei längeren Worten/ höhere Häufigkeit
-# Silbenstruktur 
+if __name__ == "__main__":
+
+    eingabe = "Hongong"
+    # ontology
+    ontology = ("Hongkong", "New York", "Berlin")
+    distanz = {}
+    # Wie hoch ist die akzeptiere Levenshtein-Distanz
+    fehlergrenze = 3
+    ''' Worte deren Levenshteindistanz zur Eingabe unter der gegebenen 
+    Fehlergrenze liegt werden in das distanz-Lexikon aufgenommen'''
+    for element in ontology:
+        if levenshtein(eingabe,element)<=fehlergrenze:
+            distanz[element] = levenshtein(eingabe,element)
+    print(distanz)
+
+    # Vertauschung nachträglich eingebaut
+    # Groß-/ Kleinschreibung wird als voller Fehler gewertet
+    # Tastendistanz läuft nicht mit ein (Levenstheindistanz anpassen)
+    # höhere Fehlergrenze bei längeren Worten/ höhere Häufigkeit
+    # Silbenstruktur

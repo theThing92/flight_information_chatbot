@@ -1,1 +1,2 @@
 owlready2==0.21
+numpy

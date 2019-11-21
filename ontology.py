@@ -1,9 +1,9 @@
 """
 TODO: add doc
 """
-import textgen
+from data import textgen
 from owlready2 import *
-
+from levenshtein import levenshtein
 
 class OntologyManager:
     """
@@ -29,6 +29,18 @@ class OntologyManager:
 
         except (Exception, IOError) as e:
             raise e
+
+    def get_individuals_for_levenshtein(self):
+        return OntologyManager._as_list_1d(list(self.ontology.individuals()))
+
+    def get_most_likely_individual(self, query, distance=3):
+        individuals = self.get_individuals_for_levenshtein()
+        out = None
+
+        for element in individuals:
+            if levenshtein(query, element) <= distance:
+                out = element
+        return out
 
     #############################################
     ########### origin & destination  ###########
@@ -181,17 +193,19 @@ class OntologyManager:
 
     def get_invalid_origin_sight(self):
         ontology_search_results = self.ontology.search(type=self.ontology.Sehenswürdigkeit, ist_sehenswürdigkeit_von_stadt=self.ontology.Hongkong)
-        ontology_search_results.extend(self.ontology.search(type=self.ontology.Sehenswürdigkeit, ist_sehenswürdigkeit_von_stadt="*New York"))
+        ontology_search_results.extend(self.ontology.search(type=self.ontology.Sehenswürdigkeit, ist_sehenswürdigkeit_von_stadt=self.ontology.search_one(iri="flight_information_ontology.owl#New York")))
 
         return ontology_search_results
 
-    def query_ontology(self, query, context):
+    def query_ontology(self, query, context, distance=1):
         """
         TODO: add doc
         :param entity_name: str
         :param context: str
         :return: str
         """
+        query = self.get_most_likely_individual(query=query, distance=distance)
+
         # valid & invalid origin and destination airports
         origin_flughafen_valid = self.get_valid_origin_airport()
         origin_flughafen_invalid = self.get_invalid_origin_airport()
@@ -208,7 +222,7 @@ class OntologyManager:
         origin_bundesland_valid = self.get_valid_origin_state_germany()
         origin_bundesland_invalid = self.get_invalid_origin_state_germany()
         destination_bundesland_valid = self.get_invalid_origin_state_germany()
-        destination_origin_bundesland_invalid = self.get_valid_origin_state_germany()
+        destination_bundesland_invalid = self.get_valid_origin_state_germany()
 
         # valid & invalid origin and destination state america
         origin_bundesstaat_valid = self.get_valid_origin_state_america()
@@ -236,35 +250,35 @@ class OntologyManager:
 
         if context == "origin":
             # valid flughafen
-            if OntologyManager.__get_exact_match(query, OntologyManager._as_list(origin_flughafen_valid)):
+            if OntologyManager.__get_exact_match(query, OntologyManager._as_list_2d(origin_flughafen_valid)):
                 return textgen.origin_flughafen_valid.format(query)
 
             # valid stadt
-            elif OntologyManager.__get_exact_match(query, OntologyManager._as_list(origin_stadt_valid)):
+            elif OntologyManager.__get_exact_match(query, OntologyManager._as_list_2d(origin_stadt_valid)):
                 flughafen = origin_flughafen_valid[0].name
 
                 return textgen.origin_stadt_valid.format(query, query, flughafen)
 
             # valid land
-            elif OntologyManager.__get_exact_match(query, OntologyManager._as_list(origin_land_valid)):
+            elif OntologyManager.__get_exact_match(query, OntologyManager._as_list_2d(origin_land_valid)):
                 airport = origin_flughafen_valid[0].name
 
                 return textgen.origin_land_valid.format(query, query, airport)
 
             # valid bundesland
-            elif OntologyManager.__get_exact_match(query, OntologyManager._as_list(origin_bundesland_valid)):
+            elif OntologyManager.__get_exact_match(query, OntologyManager._as_list_2d(origin_bundesland_valid)):
                 airport = origin_flughafen_valid[0].name
 
                 return textgen.origin_bundesland_valid.format(query, query, airport)
 
             # valid sehenswürdigkeit
-            elif OntologyManager.__get_exact_match(query, OntologyManager._as_list(origin_sehenswürdigkeit_valid)):
+            elif OntologyManager.__get_exact_match(query, OntologyManager._as_list_2d(origin_sehenswürdigkeit_valid)):
                 airport = origin_flughafen_valid[0].name
 
                 return textgen.origin_sehenswürdigkeiten_valid.format(query, query, airport)
 
             # invalid flughafen
-            elif OntologyManager.__get_exact_match(query, OntologyManager._as_list(origin_flughafen_invalid)):
+            elif OntologyManager.__get_exact_match(query, OntologyManager._as_list_2d(origin_flughafen_invalid)):
                 airport = origin_flughafen_valid[0].name
                 city = origin_stadt_valid[0].name
                 country = origin_land_valid[0].name
@@ -273,7 +287,7 @@ class OntologyManager:
                 return textgen.origin_flughafen_invalid.format(query, city, country, state, airport)
 
             # invalid stadt
-            elif OntologyManager.__get_exact_match(query, OntologyManager._as_list(origin_stadt_invalid)):
+            elif OntologyManager.__get_exact_match(query, OntologyManager._as_list_2d(origin_stadt_invalid)):
                 airport = origin_flughafen_valid[0].name
                 city = origin_stadt_valid[0].name
                 country = origin_land_valid[0].name
@@ -282,7 +296,7 @@ class OntologyManager:
                 return textgen.origin_stadt_invalid.format(query, city, country, state, airport)
 
             # invalid bundesland
-            elif OntologyManager.__get_exact_match(query, OntologyManager._as_list(origin_bundesland_invalid)):
+            elif OntologyManager.__get_exact_match(query, OntologyManager._as_list_2d(origin_bundesland_invalid)):
                 airport = origin_flughafen_valid[0].name
                 city = origin_stadt_valid[0].name
                 country = origin_land_valid[0].name
@@ -291,7 +305,7 @@ class OntologyManager:
                 return textgen.origin_bundesland_invalid.format(query, city, country, state, airport)
 
             # invalid bundesstaat
-            elif OntologyManager.__get_exact_match(query, OntologyManager._as_list(origin_bundesstaat_invalid)):
+            elif OntologyManager.__get_exact_match(query, OntologyManager._as_list_2d(origin_bundesstaat_invalid)):
                 airport = origin_flughafen_valid[0].name
                 city = origin_stadt_valid[0].name
                 country = origin_land_valid[0].name
@@ -300,7 +314,7 @@ class OntologyManager:
                 return textgen.origin_bundesstaat_invalid.format(query, city, country, state, airport)
 
             # invalid svz
-            elif OntologyManager.__get_exact_match(query, OntologyManager._as_list(origin_svz_invalid)):
+            elif OntologyManager.__get_exact_match(query, OntologyManager._as_list_2d(origin_svz_invalid)):
                 airport = origin_flughafen_valid[0].name
                 city = origin_stadt_valid[0].name
                 country = origin_land_valid[0].name
@@ -309,7 +323,7 @@ class OntologyManager:
                 return textgen.origin_svz_invalid.format(query, city, country, state, airport)
 
             # invalid sehenswürdigkeit
-            elif OntologyManager.__get_exact_match(query, OntologyManager._as_list(origin_sehenswürdigkeit_invalid)):
+            elif OntologyManager.__get_exact_match(query, OntologyManager._as_list_2d(origin_sehenswürdigkeit_invalid)):
                 airport = origin_flughafen_valid[0].name
                 city = origin_stadt_valid[0].name
                 country = origin_land_valid[0].name
@@ -322,98 +336,225 @@ class OntologyManager:
 
         elif context == "destination":
             # valid flughafen
-            if OntologyManager.__get_exact_match(query, OntologyManager._as_list(destination_flughafen_valid)):
+            if OntologyManager.__get_exact_match(query, OntologyManager._as_list_2d(destination_flughafen_valid)):
                 return textgen.destination_flughafen_valid.format(query)
 
             # valid stadt
-            elif OntologyManager.__get_exact_match(query, OntologyManager._as_list(destination_stadt_valid)):
-                ## TODO: add disambiguation for China + USA
-                flughafen = destination_flughafen_valid[0].name
+            elif OntologyManager.__get_exact_match(query, OntologyManager._as_list_2d(destination_stadt_valid)):
+                index = None
+                valid_cities_list = OntologyManager._as_list_2d(destination_stadt_valid)
 
-                return textgen.origin_stadt_valid.format(query, query, flughafen)
+                for i,val in enumerate(valid_cities_list):
+                    for j in val:
+                        if query == j:
+                            index = i
+
+                valid_destination_airports = []
+
+
+                for airport in destination_flughafen_valid:
+                    if airport.ist_flughafen_von[0] == destination_stadt_valid[index]:
+                        valid_destination_airports.append(airport)
+
+                valid_destination_airports = str(valid_destination_airports).replace("flight_information_ontology.","").replace("[","").replace("]","")
+
+
+                return textgen.destination_stadt_valid.format(query, query, valid_destination_airports)
 
             # valid land
-            elif OntologyManager.__get_exact_match(query, OntologyManager._as_list(destination_land_valid)):
-                ## TODO: add disambiguation for China + USA
-                airport = destination_flughafen_valid[0].name
+            elif OntologyManager.__get_exact_match(query, OntologyManager._as_list_2d(destination_land_valid)):
+                index = None
+                valid_countries_list = OntologyManager._as_list_2d(destination_land_valid)
 
-                return textgen.destination_land_valid.format(query, query, airport)
+                for i,val in enumerate(valid_countries_list):
+                    for j in val:
+                        if query == j:
+                            index = i
+
+                # america
+                try:
+                    destination_land_valid[index].besteht_aus_bundesstaaten
+                    valid_destination_airports = list(set(destination_flughafen_valid).intersection(destination_stadt_valid[0].hat_flughäfen))
+
+
+                except Exception as e:
+                    pass
+
+                # china
+                try:
+                    destination_land_valid[index].besteht_aus_sonderverwaltungszonen
+                    valid_destination_airports = list(set(destination_flughafen_valid).intersection(set(destination_stadt_valid[1].hat_flughäfen)))
+
+                except Exception as e:
+                    pass
+
+                valid_destination_airports = str(valid_destination_airports).replace("flight_information_ontology.","").replace("[","").replace("]","")
+
+
+                return textgen.destination_land_valid.format(query, query, valid_destination_airports)
 
             # valid bundesstaat
-            elif OntologyManager.__get_exact_match(query, OntologyManager._as_list(destination_bundesstaat_valid)):
-                ## TODO: add disambiguation for China + USA
-                airport = destination_flughafen_valid[0].name
+            elif OntologyManager.__get_exact_match(query, OntologyManager._as_list_2d(destination_bundesstaat_valid)):
+                index = None
+                valid_state_america_list = OntologyManager._as_list_2d(destination_bundesstaat_valid)
 
-                return textgen.destination_bundesstaat_valid.format(query, query, airport)
+                for i,val in enumerate(valid_state_america_list):
+                    for j in val:
+                        if query == j:
+                            index = i
+
+                valid_destination_airports = list(
+                    set(destination_flughafen_valid).intersection(set(destination_bundesstaat_valid[index].hat_flughäfen)))
+
+                valid_destination_airports = str(valid_destination_airports).replace("flight_information_ontology.","").replace("[", "").replace("]","")
+
+                return textgen.destination_bundesstaat_valid.format(query, query, valid_destination_airports)
 
             # valid svz
-            elif OntologyManager.__get_exact_match(query, OntologyManager._as_list(destination_svz_valid)):
-                ## TODO: add disambiguation for China + USA
-                airport = origin_flughafen_valid[0].name
+            elif OntologyManager.__get_exact_match(query, OntologyManager._as_list_2d(destination_svz_valid)):
+                index = None
+                valid_sar_list = OntologyManager._as_list_2d(destination_svz_valid)
 
-                return textgen.destination_svz_valid.format(query, query, airport)
+                for i,val in enumerate(valid_sar_list):
+                    for j in val:
+                        if query == j:
+                            index = i
+
+                valid_destination_airports = list(
+                    set(destination_flughafen_valid).intersection(set(destination_svz_valid[index].hat_flughäfen)))
+
+                valid_destination_airports = str(valid_destination_airports).replace("flight_information_ontology.","").replace("[", "").replace("]","")
+
+                return textgen.destination_svz_valid.format(query, query, valid_destination_airports)
 
             # valid sehenswürdigkeit
-            elif OntologyManager.__get_exact_match(query, OntologyManager._as_list(destination_sehenswürdigkeit_valid)):
-                # TODO: add disambiguation for China + USA
-                airport = origin_flughafen_valid[0].name
+            elif OntologyManager.__get_exact_match(query, OntologyManager._as_list_2d(destination_sehenswürdigkeit_valid)):
+                index = None
+                valid_sight_list = OntologyManager._as_list_2d(destination_sehenswürdigkeit_valid)
 
-                return textgen.destination_sehenswürdigkeiten_valid.format(query, query, airport)
+                for i,val in enumerate(valid_sight_list):
+                    for j in val:
+                        if query == j:
+                            index = i
+                valid_destination_airports = list(
+                    set(destination_flughafen_valid).intersection(set(
+                        destination_sehenswürdigkeit_valid[index].ist_sehenswürdigkeit_von_stadt.hat_flughäfen)))
 
-            ### TODO: disambiguate invalid  dest path corretly
+                valid_destination_airports = str(valid_destination_airports).replace("flight_information_ontology.","").replace("[", "").replace("]","")
+
+                return textgen.destination_sehenswürdigkeiten_valid.format(query, query, valid_destination_airports)
+
             # invalid flughafen
-            elif OntologyManager.__get_exact_match(query, OntologyManager._as_list(origin_flughafen_invalid)):
-                airport = origin_flughafen_valid[0].name
-                city = origin_stadt_valid[0].name
-                country = origin_land_valid[0].name
-                state = origin_bundesland_valid[0].name
+            elif OntologyManager.__get_exact_match(query, OntologyManager._as_list_2d(destination_flughafen_valid)):
 
-                return textgen.origin_flughafen_invalid.format(query, city, country, state, airport)
+                airports_new_york = str(destination_flughafen_valid[:2]).replace("flight_information_ontology.","").replace("[", "").replace("]","")
+                airports_hongkong = str(destination_flughafen_valid[2:]).replace("flight_information_ontology.","").replace("[", "").replace("]","")
+
+                city_new_york = str(destination_stadt_valid[0]).replace("flight_information_ontology.","").replace("[", "").replace("]","")
+                city_hongkong = str(destination_stadt_valid[1]).replace("flight_information_ontology.","").replace("[", "").replace("]","")
+
+                state_new_york = str(destination_bundesstaat_valid[0]).replace("flight_information_ontology.","").replace("[", "").replace("]","")
+                sar_hongkong = str(destination_svz_valid[0]).replace("flight_information_ontology.","").replace("[", "").replace("]","")
+
+                country_china = str(destination_land_valid[0]).replace("flight_information_ontology.","").replace("[", "").replace("]","")
+                country_america = str(destination_land_valid[1]).replace("flight_information_ontology.","").replace("[", "").replace("]","")
+
+
+                return textgen.destination_flughafen_invalid.format(query, city_new_york, country_america, state_new_york, city_hongkong, country_china, sar_hongkong, airports_new_york, airports_hongkong)
 
             # invalid stadt
-            elif OntologyManager.__get_exact_match(query, OntologyManager._as_list(origin_stadt_invalid)):
-                airport = origin_flughafen_valid[0].name
-                city = origin_stadt_valid[0].name
-                country = origin_land_valid[0].name
-                state = origin_bundesland_valid[0].name
+            elif OntologyManager.__get_exact_match(query, OntologyManager._as_list_2d(destination_stadt_invalid)):
 
-                return textgen.origin_stadt_invalid.format(query, city, country, state, airport)
+                airports_new_york = str(destination_flughafen_valid[:2]).replace("flight_information_ontology.","").replace("[", "").replace("]","")
+                airports_hongkong = str(destination_flughafen_valid[2:]).replace("flight_information_ontology.","").replace("[", "").replace("]","")
+
+                city_new_york = str(destination_stadt_valid[0]).replace("flight_information_ontology.","").replace("[", "").replace("]","")
+                city_hongkong = str(destination_stadt_valid[1]).replace("flight_information_ontology.","").replace("[", "").replace("]","")
+
+                state_new_york = str(destination_bundesstaat_valid[0]).replace("flight_information_ontology.","").replace("[", "").replace("]","")
+                sar_hongkong = str(destination_svz_valid[0]).replace("flight_information_ontology.","").replace("[", "").replace("]","")
+
+                country_china = str(destination_land_valid[0]).replace("flight_information_ontology.","").replace("[", "").replace("]","")
+                country_america = str(destination_land_valid[1]).replace("flight_information_ontology.","").replace("[", "").replace("]","")
+
+
+                return textgen.destination_stadt_invalid.format(query, city_new_york, country_america, state_new_york, city_hongkong, country_china, sar_hongkong, airports_new_york, airports_hongkong)
 
             # invalid bundesland
-            elif OntologyManager.__get_exact_match(query, OntologyManager._as_list(origin_bundesland_invalid)):
-                airport = origin_flughafen_valid[0].name
-                city = origin_stadt_valid[0].name
-                country = origin_land_valid[0].name
-                state = origin_bundesland_valid[0].name
+            elif OntologyManager.__get_exact_match(query, OntologyManager._as_list_2d(destination_bundesland_invalid)):
 
-                return textgen.origin_bundesland_invalid.format(query, city, country, state, airport)
+                airports_new_york = str(destination_flughafen_valid[:2]).replace("flight_information_ontology.","").replace("[", "").replace("]","")
+                airports_hongkong = str(destination_flughafen_valid[2:]).replace("flight_information_ontology.","").replace("[", "").replace("]","")
+
+                city_new_york = str(destination_stadt_valid[0]).replace("flight_information_ontology.","").replace("[", "").replace("]","")
+                city_hongkong = str(destination_stadt_valid[1]).replace("flight_information_ontology.","").replace("[", "").replace("]","")
+
+                state_new_york = str(destination_bundesstaat_valid[0]).replace("flight_information_ontology.","").replace("[", "").replace("]","")
+                sar_hongkong = str(destination_svz_valid[0]).replace("flight_information_ontology.","").replace("[", "").replace("]","")
+
+                country_china = str(destination_land_valid[0]).replace("flight_information_ontology.","").replace("[", "").replace("]","")
+                country_america = str(destination_land_valid[1]).replace("flight_information_ontology.","").replace("[", "").replace("]","")
+
+
+                return textgen.destination_bundesland_invalid.format(query, city_new_york, country_america, state_new_york, city_hongkong, country_china, sar_hongkong, airports_new_york, airports_hongkong)
+
 
             # invalid bundesstaat
-            elif OntologyManager.__get_exact_match(query, OntologyManager._as_list(origin_bundesstaat_invalid)):
-                airport = origin_flughafen_valid[0].name
-                city = origin_stadt_valid[0].name
-                country = origin_land_valid[0].name
-                state = origin_bundesland_valid[0].name
+            elif OntologyManager.__get_exact_match(query, OntologyManager._as_list_2d(destination_bundesstaat_invalid)):
 
-                return textgen.origin_bundesstaat_invalid.format(query, city, country, state, airport)
+                airports_new_york = str(destination_flughafen_valid[:2]).replace("flight_information_ontology.","").replace("[", "").replace("]","")
+                airports_hongkong = str(destination_flughafen_valid[2:]).replace("flight_information_ontology.","").replace("[", "").replace("]","")
+
+                city_new_york = str(destination_stadt_valid[0]).replace("flight_information_ontology.","").replace("[", "").replace("]","")
+                city_hongkong = str(destination_stadt_valid[1]).replace("flight_information_ontology.","").replace("[", "").replace("]","")
+
+                state_new_york = str(destination_bundesstaat_valid[0]).replace("flight_information_ontology.","").replace("[", "").replace("]","")
+                sar_hongkong = str(destination_svz_valid[0]).replace("flight_information_ontology.","").replace("[", "").replace("]","")
+
+                country_china = str(destination_land_valid[0]).replace("flight_information_ontology.","").replace("[", "").replace("]","")
+                country_america = str(destination_land_valid[1]).replace("flight_information_ontology.","").replace("[", "").replace("]","")
+
+
+                return textgen.destination_bundesstaat_invalid.format(query, city_new_york, country_america, state_new_york, city_hongkong, country_china, sar_hongkong, airports_new_york, airports_hongkong)
+
 
             # invalid svz
-            elif OntologyManager.__get_exact_match(query, OntologyManager._as_list(origin_svz_invalid)):
-                airport = origin_flughafen_valid[0].name
-                city = origin_stadt_valid[0].name
-                country = origin_land_valid[0].name
-                state = origin_bundesland_valid[0].name
+            elif OntologyManager.__get_exact_match(query, OntologyManager._as_list_2d(destination_svz_invalid)):
 
-                return textgen.origin_svz_invalid.format(query, city, country, state, airport)
+                airports_new_york = str(destination_flughafen_valid[:2]).replace("flight_information_ontology.","").replace("[", "").replace("]","")
+                airports_hongkong = str(destination_flughafen_valid[2:]).replace("flight_information_ontology.","").replace("[", "").replace("]","")
+
+                city_new_york = str(destination_stadt_valid[0]).replace("flight_information_ontology.","").replace("[", "").replace("]","")
+                city_hongkong = str(destination_stadt_valid[1]).replace("flight_information_ontology.","").replace("[", "").replace("]","")
+
+                state_new_york = str(destination_bundesstaat_valid[0]).replace("flight_information_ontology.","").replace("[", "").replace("]","")
+                sar_hongkong = str(destination_svz_valid[0]).replace("flight_information_ontology.","").replace("[", "").replace("]","")
+
+                country_china = str(destination_land_valid[0]).replace("flight_information_ontology.","").replace("[", "").replace("]","")
+                country_america = str(destination_land_valid[1]).replace("flight_information_ontology.","").replace("[", "").replace("]","")
+
+
+                return textgen.destination_svz_invalid.format(query, city_new_york, country_america, state_new_york, city_hongkong, country_china, sar_hongkong, airports_new_york, airports_hongkong)
+
 
             # invalid sehenswürdigkeit
-            elif OntologyManager.__get_exact_match(query, OntologyManager._as_list(origin_sehenswürdigkeit_invalid)):
-                airport = origin_flughafen_valid[0].name
-                city = origin_stadt_valid[0].name
-                country = origin_land_valid[0].name
-                state = origin_bundesland_valid[0].name
+            elif OntologyManager.__get_exact_match(query, OntologyManager._as_list_2d(destination_sehenswürdigkeit_invalid)):
 
-                return textgen.origin_sehenswürdigkeiten_invalid.format(query, city, country, state, airport)
+                airports_new_york = str(destination_flughafen_valid[:2]).replace("flight_information_ontology.","").replace("[", "").replace("]","")
+                airports_hongkong = str(destination_flughafen_valid[2:]).replace("flight_information_ontology.","").replace("[", "").replace("]","")
+
+                city_new_york = str(destination_stadt_valid[0]).replace("flight_information_ontology.","").replace("[", "").replace("]","")
+                city_hongkong = str(destination_stadt_valid[1]).replace("flight_information_ontology.","").replace("[", "").replace("]","")
+
+                state_new_york = str(destination_bundesstaat_valid[0]).replace("flight_information_ontology.","").replace("[", "").replace("]","")
+                sar_hongkong = str(destination_svz_valid[0]).replace("flight_information_ontology.","").replace("[", "").replace("]","")
+
+                country_china = str(destination_land_valid[0]).replace("flight_information_ontology.","").replace("[", "").replace("]","")
+                country_america = str(destination_land_valid[1]).replace("flight_information_ontology.","").replace("[", "").replace("]","")
+
+
+                return textgen.destination_sehenswürdigkeiten_invalid.format(query, city_new_york, country_america, state_new_york, city_hongkong, country_china, sar_hongkong, airports_new_york, airports_hongkong)
+
 
             else:
                 return textgen.unknown
@@ -448,7 +589,7 @@ class OntologyManager:
         return out
 
     @staticmethod
-    def _as_list(ontology_search_results):
+    def _as_list_2d(ontology_search_results):
         """
         TODO: add doc
         :param ontology_search_results:
@@ -461,12 +602,21 @@ class OntologyManager:
 
         return out
 
+    @staticmethod
+    def _as_list_1d(ontology_search_results):
+        d2 = OntologyManager._as_list_2d(ontology_search_results)
+        d1 = []
+
+        for i in d2:
+            for j in i:
+                d1.append(j)
+
+        return d1
+
 
 
 if __name__ == "__main__":
-    from pprint import pprint
-
     onto_manager = OntologyManager()
 
-    onto_manager.query_ontology(1,2)
+    #onto_manager.query_ontology(1,2)
 
