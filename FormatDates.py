@@ -13,7 +13,7 @@ class Helper:
     def getDate(inputString):
         day = 0
         month = 0
-        year = 2020 #Default
+        year = 2019 #Default
 
         inputString = inputString.lower()
 

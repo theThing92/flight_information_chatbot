@@ -31,4 +31,4 @@ destination_flughafen_invalid = "Leider ist ihr gewählter Flughafen {} kein gü
 destination_sehenswürdigkeiten_invalid = "Leider gibt es in der Nähe Ihrer gewählten Sehenswürdigkeit {} keine gültigen Zielflughäfen. In {} ({}, {}) oder {} ({}, {}) befinden sich allerdings folgende mögliche Zielflughäfen: {} oder {}"
 
 # unknown
-unknown = "Leider konnte Ihre Eingabe nicht in der Ontologie gefunden werden. Bitte überprüfen Sie ggf. Ihre Eingabe."
+unknown = "Leider konnte Ihre Eingabe nicht in der Ontologie gefunden werden."

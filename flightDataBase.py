@@ -231,7 +231,7 @@ class FLightDataBase:
                     #get rating for target airport
                     for x in range(len(self.goal)):
                         if listToSort[i][1] == self.goal[x]:
-                            rating = rating + prefs[1]*((len(self.goal)-1-x)/(len(self.goal)-1))
+                            rating = rating + prefs[1]*((len(self.goal)-1-x)/(len(self.goal)))
 
                 if self.date != "":
                     #get rating for date

@@ -7,7 +7,7 @@ class FLightGenerator:
 
     def generate(self):
         file1 = open(self.file,"w")
-        towns = [["Düsseldorf"], ["Hong Kong i airport", "2"], ["JFK", "NewArk"]]
+        towns = [["Flughafen Düsseldorf"], ["Chek Lap Kok Hong Kong International Airport", "Shek Kong Airfield"], ["John F. Kennedy Airport", "LaGuarda Airport"]]
 
         for i in range(0, self.flights):
             #get starttown
@@ -37,3 +37,6 @@ class FLightGenerator:
             file1.write(flight)
 
         file1.close()
+
+if __name__ == "__main__":
+    FLightGenerator("flights.txt", 500000).generate()
