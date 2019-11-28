@@ -115,9 +115,22 @@ class Helper:
         if budget != -1:
             return budget
         else:
-            print ("Bitte geben Sie ihr höchstes Budget als ganze Hal ein:")
+            print ("Bitte geben Sie ihr höchstes Budget als ganze Zahl ein:")
             inp = input()
             return Helper.getBudget(inp)
+
+    def getDuration(inputString):
+        inputString = inputString.lower()
+
+        try:
+
+            duration = int(inputString)
+            return duration
+
+        except ValueError:
+            print("Bitte geben Sie ihre maximale Flugdauer (in Std.) als ganze Zahl ein:")
+            inp = input()
+            return Helper.getDuration(inp)
 
     #Umstiege
     #Zwei, 2, Keinen

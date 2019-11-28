@@ -50,7 +50,7 @@ storage = {
     'dep-date': [7, 11, 2019],   #basic need-to-know
     'dep-time': [12, 0],   #basic need-to-know
     'budget': 500,         # optional nice-to-know
-    'sort-by-time': 500,  # optional nice-to-know
+    'sort-by-time': 40,  # optional nice-to-know
     'max-stops': 4,      # optional nice-to-know
     # Default Settings?
 }
@@ -63,7 +63,7 @@ storage = {
 def greeting():
     print('Hallo! Wilkommen beim DS Travel Assitant! Ich freue mich Ihnen zu helfen.')
 
-def askForStart(distance=2):
+def askForStart(distance=1):
 
 
     data = str(input("Von wo aus möchten Sie abfliegen? "))
@@ -96,7 +96,7 @@ def askForStart(distance=2):
         # User: " Ich möchte die Freiheitsstatue sehen"
         # Bot : " Wollen Sie nach New York?"
 
-def askForDestination(distance=2):
+def askForDestination(distance=1):
     data = str(input("Wo möchten Sie hinfliegen? "))
 
     data = remove_stopwords_interpunctuation(data)
@@ -167,7 +167,8 @@ def askForPreference():
             store({'budget':output})
         elif pref == "duration":
             # TODO: write helper function to get max duration
-            output = Helper.getBudget(data)
+            #output = Helper.getBudget(data)
+            output = Helper.getDuration(data)
             store({'sort-by-time':output})
         else:
             print("Entschuldigung, ich habe Ihre Präferenz nicht verstanden. Könnten Sie das noch einmal anders formulieren?")
@@ -229,7 +230,7 @@ def flightSuggestion(flights,index=0):
     proposed_flight = ", ".join(proposed_flight)
 
 
-    data = str(input('Was halten Sie von diesem Flug? Möchten Sie ihn buchen?\n' + proposed_flight))
+    data = str(input('Was halten Sie von diesem Flug? Möchten Sie ihn buchen? Für eine erneute Suche, geben Sie "neustart" ein.\n' + proposed_flight))
     output = extractFlightSuggestionInfo(data, flights, index)
 
     # Usercase 1. Wenn der output "Ja" ist wird der Flug gebucht und das Programm beendet
@@ -255,12 +256,18 @@ def extractFlightSuggestionInfo(data, flights, index):
         print("Der nächstbeste Flug wird vorgeschlagen.")
         flightSuggestion(flights, index+1)
 
+    elif data.lower() in ["neustart","neu"]:
+        startChat(greet=False)
+
+
+
 
 def bookFlight():
     print('Ihr Flug wurde gebucht!')
 
-def startChat():
-    greeting()
+def startChat(greet=True):
+    if greet:
+        greeting()
     askForStart()
     askForDestination()
     askForDate()
@@ -268,6 +275,7 @@ def startChat():
     askForPreference()
     flights = flightQuery()
     flightSuggestion(flights, 0)
+
 
 
 
