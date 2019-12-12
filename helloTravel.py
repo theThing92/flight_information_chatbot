@@ -31,6 +31,7 @@ import datetime
 from ontology import OntologyManager
 import nltk
 from copy import deepcopy
+from levenshtein import levenshtein
 
 ### TODO: check if global declaration necessary
 global storage
@@ -42,7 +43,7 @@ ontology_manager = OntologyManager()
 
 stopwords = nltk.corpus.stopwords.words("german")
 stopwords += ["fliegen"]
-tokenizer = nltk.tokenize.RegexpTokenizer(r'\w+')
+tokenizer = nltk.tokenize.RegexpTokenizer(r'[\w-]+')
 
 storage = {
     'start': ["Flughafen Düsseldorf"],      #basic need-to-know
@@ -63,7 +64,7 @@ storage = {
 def greeting():
     print('Hallo! Wilkommen beim DS Travel Assitant! Ich freue mich Ihnen zu helfen.')
 
-def askForStart(distance=1):
+def askForStart(distance=2):
 
 
     data = str(input("Von wo aus möchten Sie abfliegen? "))
@@ -73,9 +74,32 @@ def askForStart(distance=1):
     if data == "":
         return None
 
-
-    output, valid = extractInfo(data, "origin", distance=distance)
     while True:
+        try:
+            most_likely_query_candidates = ontology_manager.get_most_likely_individuals(data, distance)
+            most_likely_candidate = most_likely_query_candidates[0]
+
+            if data in most_likely_query_candidates:
+                break
+
+            elif data not in most_likely_query_candidates and levenshtein(data, most_likely_candidate) < distance:
+                data = most_likely_candidate
+                break
+
+            elif data not in most_likely_query_candidates and levenshtein(data, most_likely_candidate) >= distance:
+                str_most_likely_query_candidates = "\n".join(most_likely_query_candidates)
+
+                print(f"Ihre Eingabe konnte leider nicht eindeutig bestimmt werden. Meinten Sie:\n{str_most_likely_query_candidates}")
+
+                data = str(input("Von wo aus möchten Sie abfliegen? "))
+
+        except:
+            print(f"Ihre Eingabe konnte leider nicht eindeutig bestimmt werden.")
+            data = str(input("Von wo aus möchten Sie abfliegen? "))
+
+    #output, valid = extractInfo(data, "origin", distance=distance)
+    while True:
+        output, valid = extractInfo(data, "origin", distance=distance)
         if valid:
             normalized = ontology_manager.get_synonym_airport_mapping()
 
@@ -87,22 +111,72 @@ def askForStart(distance=1):
 
             data = remove_stopwords_interpunctuation(data)
 
+
             if data == "":
                 break
 
-            output, valid = extractInfo(data, "origin", distance=distance)
+            try:
+                most_likely_query_candidates = ontology_manager.get_most_likely_individuals(data, distance)
+                most_likely_candidate = most_likely_query_candidates[0]
+
+                if data in most_likely_query_candidates:
+                    pass
+
+                elif data not in most_likely_query_candidates and levenshtein(data, most_likely_candidate) < distance:
+                    data = most_likely_candidate
+                    pass
+
+                elif data not in most_likely_query_candidates and levenshtein(data, most_likely_candidate) >= distance:
+                    str_most_likely_query_candidates = "\n".join(most_likely_query_candidates)
+
+                    print(
+                        f"Ihre Eingabe konnte leider nicht eindeutig bestimmt werden. Meinten Sie:\n{str_most_likely_query_candidates}")
+
+                    data = str(input("Von wo aus möchten Sie abfliegen? "))
+
+            except:
+                print(f"Ihre Eingabe konnte leider nicht eindeutig bestimmt werden.")
+
+
+
 
         # Bestätigung der Eingabe? zB
         # User: " Ich möchte die Freiheitsstatue sehen"
         # Bot : " Wollen Sie nach New York?"
 
-def askForDestination(distance=1):
+def askForDestination(distance=2):
     data = str(input("Wo möchten Sie hinfliegen? "))
 
     data = remove_stopwords_interpunctuation(data)
 
     if data == "":
         return None
+
+    while True:
+        try:
+            most_likely_query_candidates = ontology_manager.get_most_likely_individuals(data, distance)
+            most_likely_candidate = most_likely_query_candidates[0]
+
+
+            if data in most_likely_query_candidates:
+                break
+
+            elif data not in most_likely_query_candidates and levenshtein(data, most_likely_candidate) < distance:
+                data = most_likely_candidate
+                break
+
+            elif data not in most_likely_query_candidates and levenshtein(data, most_likely_candidate) >= distance:
+                str_most_likely_query_candidates = "\n".join(most_likely_query_candidates)
+
+                print(f"Ihre Eingabe konnte leider nicht eindeutig bestimmt werden. Meinten Sie:\n{str_most_likely_query_candidates}")
+
+                data = str(input("Wo möchten Sie hinfliegen? "))
+
+
+        except:
+            print(f"Ihre Eingabe konnte leider nicht eindeutig bestimmt werden.")
+
+            data = str(input("Wo möchten Sie hinfliegen? "))
 
     output, valid = extractInfo(data, "destination", distance=distance)
     while True:
@@ -120,7 +194,26 @@ def askForDestination(distance=1):
             if data == "":
                 break
 
-            output, valid = extractInfo(data, "destination", distance=distance)
+            try:
+                most_likely_query_candidates = ontology_manager.get_most_likely_individuals(data, distance)
+                most_likely_candidate = most_likely_query_candidates[0]
+
+                if data in most_likely_query_candidates:
+                    pass
+
+                elif data not in most_likely_query_candidates and levenshtein(data, most_likely_candidate) < distance:
+                    data = most_likely_candidate
+                    pass
+
+                elif data not in most_likely_query_candidates and levenshtein(data, most_likely_candidate) >= distance:
+                    str_most_likely_query_candidates = "\n".join(most_likely_query_candidates)
+
+                    print(f"Ihre Eingabe konnte leider nicht eindeutig bestimmt werden. Meinten Sie:\n{str_most_likely_query_candidates}")
+
+            except:
+                print(f"Ihre Eingabe konnte leider nicht eindeutig bestimmt werden.")
+
+        output, valid = extractInfo(data, "destination", distance=distance)
 
 
 
@@ -203,7 +296,7 @@ def flightQuery():
 
     try:
         flights = dataBase.GetFLights(start= storage["start"], goal =storage["ziel"], date = datetime.datetime(storage["dep-date"][2],storage["dep-date"][1],storage["dep-date"][0]),
-        time= datetime.time(storage["dep-time"][1],storage["dep-time"][0]), changes = storage["max-stops"], duration = storage["sort-by-time"], cost = storage["budget"])
+        time= datetime.time(storage["dep-time"][0],storage["dep-time"][1]), changes = storage["max-stops"], duration = storage["sort-by-time"], cost = storage["budget"])
         preferences=[1,1,1,1,1,1,1]
         bestFlights= dataBase.SortList(flights, preferences)
         return bestFlights

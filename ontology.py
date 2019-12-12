@@ -33,14 +33,19 @@ class OntologyManager:
     def get_individuals_for_levenshtein(self):
         return OntologyManager._as_list_1d(list(self.ontology.individuals()))
 
-    def get_most_likely_individual(self, query, distance=3):
+    def get_most_likely_individuals(self, query, distance=3):
         individuals = self.get_individuals_for_levenshtein()
-        out = None
+        out = []
 
         for element in individuals:
-            if levenshtein(query, element) <= distance:
-                out = element
+            calculated_distance = levenshtein(query, element)
+            if  calculated_distance <= distance:
+                out.append((calculated_distance,element))
+
+        # remove dublettes while preserving list ordering
+        out = [element[1] for element in list(dict.fromkeys(sorted(out)))]
         return out
+
 
     #############################################
     ########### origin & destination  ###########
@@ -65,6 +70,12 @@ class OntologyManager:
         :return: list
         """
         ontology_search_results = self.ontology.search(type=self.ontology.Flughafen, ist_gültiger_zielflughafen_für_flugreise=True)
+
+        return ontology_search_results
+
+    # TODO: rename method
+    def get_valid_destination_airport_outside_new_york(self):
+        ontology_search_results = self.ontology.search(type=self.ontology.Flughafen, ist_gültiger_zielflughafen_für_flugreise=True, liegt_in_stadtgebiet_von_new_york=False)
 
         return ontology_search_results
 
@@ -142,7 +153,7 @@ class OntologyManager:
         TODO: add doc
         :return: list
         """
-        ontology_search_results = self.ontology.search(type=self.ontology.Bundesstaat, iri="flight_information_ontology.owl#New York")
+        ontology_search_results = self.ontology.search(type=self.ontology.Bundesstaat, iri="flight_information_ontology.owl#Bundesstaat New York")
 
         return ontology_search_results
 
@@ -162,7 +173,7 @@ class OntologyManager:
         TODO: add doc
         :return: list
         """
-        ontology_search_results = self.ontology.search(type=self.ontology.Sonderverwaltungszone, iri="flight_information_ontology.owl#Hongkong")
+        ontology_search_results = self.ontology.search(type=self.ontology.Sonderverwaltungszone, iri="flight_information_ontology.owl#Sonderverwaltungszone Hongkong")
 
         return ontology_search_results
 
@@ -204,12 +215,13 @@ class OntologyManager:
         :param context: str
         :return: str
         """
-        query = self.get_most_likely_individual(query=query, distance=distance)
+        #query = self.get_most_likely_individuals(query=query, distance=distance)[0]
 
         # valid & invalid origin and destination airports
         origin_flughafen_valid = self.get_valid_origin_airport()
         origin_flughafen_invalid = self.get_invalid_origin_airport()
         destination_flughafen_valid = self.get_valid_destination_airport()
+        destination_flughafen_valid_outside_new_york = self.get_valid_destination_airport_outside_new_york()
         destination_flughafen_invalid = self.get_invalid_destination_airport()
 
         # valid & invalid origin and destination country
@@ -303,7 +315,7 @@ class OntologyManager:
                 return query, False
 
             # invalid bundesland
-            elif OntologyManager.__get_exact_match(query, OntologyManager._as_list_2d(origin_bundesland_invalid)):
+            elif OntologyManager.__get_exact_match(query, OntologyManager._as_list_2d(origin_bundesland_invalid)) == []:
                 airport = origin_flughafen_valid[0].name
                 city = origin_stadt_valid[0].name
                 country = origin_land_valid[0].name
@@ -313,7 +325,8 @@ class OntologyManager:
                 return query, False
 
             # invalid bundesstaat
-            elif OntologyManager.__get_exact_match(query, OntologyManager._as_list_2d(origin_bundesstaat_invalid)):
+            # TODO: make less hacky
+            elif query in OntologyManager._as_list_1d(self.get_invalid_origin_state_america()):
                 airport = origin_flughafen_valid[0].name
                 city = origin_stadt_valid[0].name
                 country = origin_land_valid[0].name
@@ -323,7 +336,8 @@ class OntologyManager:
                 return query,False
 
             # invalid svz
-            elif OntologyManager.__get_exact_match(query, OntologyManager._as_list_2d(origin_svz_invalid)):
+            # TODO: make less hacky
+            elif query in OntologyManager._as_list_1d(self.get_invalid_origin_sar()):
                 airport = origin_flughafen_valid[0].name
                 city = origin_stadt_valid[0].name
                 country = origin_land_valid[0].name
@@ -341,14 +355,33 @@ class OntologyManager:
 
                 print(textgen.origin_sehenswürdigkeiten_invalid.format(query, city, country, state, airport))
                 return query,False
+
+            # invalid land
+            elif OntologyManager.__get_exact_match(query, OntologyManager._as_list_2d(origin_land_invalid)):
+                airport = origin_flughafen_valid[0].name
+                city = origin_stadt_valid[0].name
+                country = origin_land_valid[0].name
+                state = origin_bundesland_valid[0].name
+
+                print(textgen.origin_land_invalid.format(query, city, country, state, airport))
+                return query,False
+
+
             else:
                 print(textgen.unknown)
                 return query,False
 
         elif context == "destination":
+            # valid flughafen (outside new york)
+            if OntologyManager.__get_exact_match(query, OntologyManager._as_list_2d(destination_flughafen_valid_outside_new_york)):
+                print(textgen.destination_flughafen_valid_outside_new_york.format(query, query))
+
+                return query, True
+
             # valid flughafen
-            if OntologyManager.__get_exact_match(query, OntologyManager._as_list_2d(destination_flughafen_valid)):
+            elif OntologyManager.__get_exact_match(query, OntologyManager._as_list_2d(destination_flughafen_valid)):
                 print(textgen.destination_flughafen_valid.format(query))
+
                 return query,True
 
             # valid stadt
@@ -383,11 +416,12 @@ class OntologyManager:
                     for j in val:
                         if query == j:
                             index = i
-
+                #print(index)
+                #print(destination_land_valid)
                 # america
                 try:
-                    destination_land_valid[index].besteht_aus_bundesstaaten
-                    valid_destination_airports = list(set(destination_flughafen_valid).intersection(destination_stadt_valid[0].hat_flughäfen))
+                    if len(destination_land_valid[index].besteht_aus_bundesstaaten) > 0:
+                        valid_destination_airports = list(set(destination_flughafen_valid).intersection(destination_stadt_valid[0].hat_flughäfen))
 
 
                 except Exception as e:
@@ -395,8 +429,8 @@ class OntologyManager:
 
                 # china
                 try:
-                    destination_land_valid[index].besteht_aus_sonderverwaltungszonen
-                    valid_destination_airports = list(set(destination_flughafen_valid).intersection(set(destination_stadt_valid[1].hat_flughäfen)))
+                    if len(destination_land_valid[index].besteht_aus_sonderverwaltungszonen)>0:
+                        valid_destination_airports = list(set(destination_flughafen_valid).intersection(set(destination_stadt_valid[1].hat_flughäfen)))
 
                 except Exception as e:
                     pass
@@ -408,6 +442,7 @@ class OntologyManager:
                 return query, False
 
             # valid bundesstaat
+            # TODO: make less hacky
             elif OntologyManager.__get_exact_match(query, OntologyManager._as_list_2d(destination_bundesstaat_valid)):
                 index = None
                 valid_state_america_list = OntologyManager._as_list_2d(destination_bundesstaat_valid)
@@ -416,9 +451,9 @@ class OntologyManager:
                     for j in val:
                         if query == j:
                             index = i
-
+                print(index)
                 valid_destination_airports = list(
-                    set(destination_flughafen_valid).intersection(set(destination_bundesstaat_valid[index].hat_flughäfen)))
+                    set(destination_flughafen_valid).intersection(set(destination_stadt_valid[0].hat_flughäfen)))
 
                 valid_destination_airports = str(valid_destination_airports).replace("flight_information_ontology.","").replace("[", "").replace("]","")
 
@@ -436,7 +471,7 @@ class OntologyManager:
                             index = i
 
                 valid_destination_airports = list(
-                    set(destination_flughafen_valid).intersection(set(destination_svz_valid[index].hat_flughäfen)))
+                    set(destination_flughafen_valid).intersection(set(destination_stadt_valid[1].hat_flughäfen.hat_flughäfen)))
 
                 valid_destination_airports = str(valid_destination_airports).replace("flight_information_ontology.","").replace("[", "").replace("]","")
 
@@ -462,7 +497,8 @@ class OntologyManager:
                 return query, False
 
             # invalid flughafen
-            elif OntologyManager.__get_exact_match(query, OntologyManager._as_list_2d(destination_flughafen_valid)):
+            # TODO: make less hacky
+            elif OntologyManager.__get_exact_match(query, OntologyManager._as_list_2d(origin_flughafen_valid)):
 
                 airports_new_york = str(destination_flughafen_valid[:2]).replace("flight_information_ontology.","").replace("[", "").replace("]","")
                 airports_hongkong = str(destination_flughafen_valid[2:]).replace("flight_information_ontology.","").replace("[", "").replace("]","")
@@ -608,6 +644,7 @@ class OntologyManager:
                     match = s
 
         return match
+
 
     @staticmethod
     def _as_dict(ontology_search_results):

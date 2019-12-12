@@ -16,6 +16,7 @@ origin_sehenswürdigkeiten_invalid = "Leider gibt es in der Nähe Ihrer gewählt
 
 # destination
 destination_flughafen_valid = "Sie haben {} als Zielflughafen gewählt."
+destination_flughafen_valid_outside_new_york = "Sie haben {} als Zielflughafen gewählt. Hinweis: {} liegt außerhalb des Stadtgebiets von New York."
 destination_land_valid = "Sie haben {} als Zielland für Ihre Flugreise gewählt. In {} befinden sich folgende mögliche Zielflughäfen: {}"
 destination_sev_valid = "Sie haben {} als Ziel-SVZ für Ihre Flugreise gewählt. In {} befinden sich folgende mögliche Zielflughäfen: {}"
 destination_stadt_valid = "Sie haben {} als Zielstadt für Ihre Flugreise gewählt. In {} befinden sich folgende mögliche Zielflughäfen: {}"
@@ -27,7 +28,7 @@ destination_sev_invalid = "Leider gibt es in ihrer gewählten SVZ {} keine gült
 destination_bundesland_invalid = "Leider gibt es in ihrem gewählten Bundesland {} keine gültigen Zielflughäfen. In {} ({}, {})  befinden sich allerdings folgende mögliche Zielflughäfen: {}"
 destination_bundesstaat_invalid = "Leider gibt es in ihrem gewählten Bundesstaat {} keine gültigen Zielflughäfen. In {} ({}, {}) oder {} ({}, {}) befinden sich allerdings folgende mögliche Zielflughäfen: {} oder {}"
 destination_stadt_invalid =  "Leider gibt es in ihrer gewählten Stadt {} keine gültigen Zielflughäfen. In {} ({}, {}) oder {} ({}, {}) befinden sich allerdings folgende mögliche Zielflughäfen: {} oder {}"
-destination_flughafen_invalid = "Leider ist ihr gewählter Flughafen {} kein gültiger Zielflughäfen. In {} ({}, {}) oder {} ({},{}) befinden sich allerdings folgende mögliche Zielflughäfen: {} oder {}"
+destination_flughafen_invalid = "Leider ist ihr gewählter Flughafen {} kein gültiger Zielflughäfen. In {} ({}, {}) oder {} ({}, {}) befinden sich allerdings folgende mögliche Zielflughäfen: {} oder {}"
 destination_sehenswürdigkeiten_invalid = "Leider gibt es in der Nähe Ihrer gewählten Sehenswürdigkeit {} keine gültigen Zielflughäfen. In {} ({}, {}) oder {} ({}, {}) befinden sich allerdings folgende mögliche Zielflughäfen: {} oder {}"
 
 # unknown

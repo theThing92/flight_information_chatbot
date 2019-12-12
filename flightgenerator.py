@@ -7,7 +7,7 @@ class FLightGenerator:
 
     def generate(self):
         file1 = open(self.file,"w")
-        towns = [["Flughafen Düsseldorf"], ["Chek Lap Kok Hong Kong International Airport", "Shek Kong Airfield"], ["John F. Kennedy Airport", "LaGuarda Airport"]]
+        towns = [["Flughafen Düsseldorf"], ["Chek Lap Kok Hong Kong International Airport", "Shek Kong Airfield"], ["Newark Liberty International Airport","John F. Kennedy Airport", "LaGuarda Airport"]]
 
         for i in range(0, self.flights):
             #get starttown
